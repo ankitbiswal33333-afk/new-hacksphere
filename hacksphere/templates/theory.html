@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Lab: Theory & Procedure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50; --accent: #3498db; --danger: #e74c3c; 
+            --success: #27ae60; --light: #f8f9fa; --table-head: #e9ecef;
+        }
+        body { font-family: 'Roboto', sans-serif; margin: 0; background-color: var(--light); color: #333; line-height: 1.6; }
+
+        /* HEADER */
+        header { background: white; padding: 15px 30px; border-bottom: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .lab-title h1 { margin: 0; font-size: 1.4rem; color: var(--primary); }
+        .btn-lab { text-decoration: none; background: var(--success); color: white; padding: 10px 20px; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn-lab:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+        /* CONTENT */
+        .container { max-width: 900px; margin: 30px auto; padding: 20px; display: flex; flex-direction: column; gap: 25px; }
+        
+        .card { background: white; padding: 30px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .section-title { color: var(--accent); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.2rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+
+        h3 { color: var(--primary); margin-top: 0; border-left: 4px solid var(--accent); padding-left: 10px; }
+        ul, ol { margin-bottom: 0; padding-left: 20px; }
+        li { margin-bottom: 8px; }
+
+        .highlight { color: var(--danger); font-weight: bold; }
+        .formula-box { background: #e8f4fd; border-radius: 4px; padding: 15px; font-family: 'Courier New', monospace; margin: 10px 0; border: 1px dashed var(--accent); text-align: center; font-weight: bold;}
+
+        /* TABLE STYLING FOR MANUAL */
+        .manual-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .manual-table th, .manual-table td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        .manual-table th { background-color: var(--table-head); color: var(--primary); }
+        .empty-row { height: 25px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="lab-title">
+            <h1>Virtual Labs :: Experiment Manual</h1>
+        </div>
+        <a href="/" class="btn-lab">⚡ Go to Simulator</a>
+    </header>
+
+    <div class="container">
+
+        <div class="card">
+            <div class="section-title">1. Aim of Experiment</div>
+            <p>To study and plot the <strong>V-I Characteristics</strong> of a PN Junction Diode and a Zener Diode under Forward and Reverse Bias conditions, and to determine the Cut-in Voltage and Breakdown Voltage.</p>
+        </div>
+
+        <div class="card">
+            <div class="section-title">2. Theory</div>
+            
+            <h3>PN Junction Diode</h3>
+            <p>A PN junction diode conducts current primarily in one direction (Forward Bias). When the p-type side is connected to the positive terminal and n-type to the negative, the depletion width decreases.</p>
+            <ul>
+                <li><strong>Cut-in Voltage (Knee Voltage):</strong> The minimum voltage at which the diode starts conducting significantly.
+                    <ul>
+                        <li>Silicon (Si): ~0.7 V</li>
+                        <li>Germanium (Ge): ~0.3 V</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="formula-box">
+                Shockley Equation: I = Is * ( e^(V / nVt) - 1 )
+            </div>
+
+            <h3>Zener Diode</h3>
+            <p>A Zener diode is heavily doped and designed to operate in the <strong>Reverse Breakdown</strong> region. Once the reverse voltage exceeds the Zener Voltage (<span class="highlight">Vz</span>), the current increases sharply while voltage remains constant.</p>
+        </div>
+
+        <div class="card">
+            <div class="section-title">3. Procedure</div>
+            <ol>
+                <li>Select the <strong>Material</strong> (Silicon, Germanium, or Zener).</li>
+                <li>Set the <strong>Temperature</strong> (Standard room temp is 27°C).</li>
+                <li>Turn <strong>ON</strong> the Main Power Supply switch.</li>
+                <li>Use the slider to vary the DC Voltage ($V_{in}$) from 0V to +2V (Forward) and 0V to -5V (Reverse).</li>
+                <li>Click <strong>ADD READING</strong> to plot the point and log the value.</li>
+                <li>Observe the <strong>Saddle Point (Knee)</strong> on the graph.</li>
+                <li>Compare your experimental graph with the <strong>Theoretical Curve</strong> by checking the box.</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <div class="section-title">4. Observation Tables</div>
+            <p><em>(Draw these tables in your practical file and record readings from the simulator)</em></p>
+
+            <h3>Table 1: Forward Bias Characteristics</h3>
+            <p><strong>Component:</strong> Silicon Diode | <strong>Temperature:</strong> 27°C</p>
+            <table class="manual-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">S. No.</th>
+                        <th>Forward Voltage, $V_f$ (Volts)</th>
+                        <th>Forward Current, $I_f$ (mA)</th>
+                        <th>Power Dissipation (mW)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>0.10</td><td>0.000</td><td>0.00</td></tr>
+                    <tr><td>2</td><td>0.30</td><td>0.000</td><td>0.00</td></tr>
+                    <tr><td>3</td><td>0.50</td><td>0.012</td><td>0.006</td></tr>
+                    <tr><td>4</td><td>0.70 (Knee)</td><td></td><td></td></tr>
+                    <tr><td>5</td><td>0.80</td><td></td><td></td></tr>
+                    <tr><td>6</td><td>1.00</td><td></td><td></td></tr>
+                </tbody>
+            </table>
+
+            <br><br>
+
+            <h3>Table 2: Reverse Bias Characteristics (Zener)</h3>
+            <p><strong>Component:</strong> Zener Diode | <strong>Temperature:</strong> 27°C</p>
+            <table class="manual-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">S. No.</th>
+                        <th>Reverse Voltage, $V_r$ (Volts)</th>
+                        <th>Reverse Current, $I_r$ (mA)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>-1.00</td><td>~0.00</td><td>OPTIMAL</td></tr>
+                    <tr><td>2</td><td>-3.00</td><td>~0.00</td><td>OPTIMAL</td></tr>
+                    <tr><td>3</td><td>-5.00</td><td></td><td>OPTIMAL</td></tr>
+                    <tr><td>4</td><td>-5.10 (Brk)</td><td></td><td>Breakdown</td></tr>
+                    <tr><td>5</td><td>-5.50</td><td></td><td>BURNT (If P > 0.5W)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="section-title">5. Result</div>
+            <ul>
+                <li>The V-I characteristics of the PN Junction diode were plotted.</li>
+                <li>The Cut-in Voltage for Silicon was found to be approximately <strong>0.7 V</strong>.</li>
+                <li>The Zener Breakdown occurred at approximately <strong>5.1 V</strong>.</li>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+</html>

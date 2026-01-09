@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Semiconductor Lab</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #2c3e50; --accent: #3498db; --danger: #e74c3c; --success: #27ae60; --purple: #8e44ad; --grid: #ecf0f1; }
+        body { font-family: 'Roboto', sans-serif; margin: 0; background-color: #f8f9fa; height: 100vh; display: flex; flex-direction: column; }
+
+        header { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--accent); }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-area img { height: 50px; }
+        .lab-title h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+
+        .container { display: flex; flex: 1; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; overflow: hidden; }
+        .left-panel { flex: 0 0 320px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .right-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 5px; }
+        
+        .panel-card { background: white; padding: 15px; border-radius: 8px; border: 1px solid #dcdcdc; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .panel-header { font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--grid); padding-bottom: 8px; margin-bottom: 12px; text-transform: uppercase; font-size: 0.85rem; }
+        
+        .control-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.8rem; font-weight: 500; color: #555; margin-bottom: 4px; }
+        select, input[type="range"], input[type="number"] { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;}
+        
+        .btn-action { width: 100%; padding: 10px; margin-top: 8px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; transition: 0.2s; }
+        .btn-measure { background: var(--success); }
+        .btn-reset { background: var(--danger); margin-top: 8px; }
+        .btn-download { background: var(--purple); margin-top: 8px; }
+        .disabled-ui { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; float: right; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        .readings-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .reading-box { background: var(--primary); color: white; padding: 12px; border-radius: 6px; text-align: center; }
+        .reading-val { font-size: 1.2rem; font-weight: bold; display: block; color: var(--accent); word-break: break-all; }
+        .reading-lbl { font-size: 0.7rem; text-transform: uppercase; opacity: 0.8; }
+
+        .table-container { max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f8f9fa; position: sticky; top: 0; padding: 8px; text-align: left; border-bottom: 2px solid #ddd; color: var(--primary); z-index: 2; }
+        td { padding: 8px; border-bottom: 1px solid #eee; }
+        tr:nth-child(even) { background-color: #fcfcfc; }
+        
+        .analysis-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 10px; background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.8rem; color: #555; }
+        .tables-row { display: flex; gap: 15px; }
+        .tables-row > div { flex: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <img src="/static/logo.png" alt="Logo">
+            <div class="lab-title">
+                <h1>Virtual Labs</h1>
+                <p>Advanced Electronics :: High Precision Mode</p>
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <a href="/theory" style="text-decoration:none; color: var(--accent); font-weight:500; font-size:0.9rem; border:1px solid var(--accent); padding:6px 12px; border-radius:4px;">📖 Lab Manual</a>
+            <button class="btn-reset" style="margin:0; padding:6px 12px;" onclick="location.reload()">Reset Lab</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="left-panel">
+            <div class="panel-card" style="border-left: 5px solid var(--success);">
+                <div class="panel-header" style="border:none; margin:0; display:flex; justify-content:space-between; align-items:center;">
+                    <span>Main Power Supply</span>
+                    <label class="switch">
+                        <input type="checkbox" id="power-switch" onchange="togglePower()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="power-status" style="font-size: 0.8rem; color: #777; margin-top: 5px;">Status: <b>OFF</b></div>
+            </div>
+
+            <div class="panel-card" id="circuit-box">
+                <div class="panel-header">Circuit Diagram</div>
+                <div style="text-align: center; padding: 10px; background: #fafafa; border: 1px dashed #ccc; border-radius: 4px;">
+                    <svg width="250" height="100" viewBox="0 0 250 120">
+                        <line x1="30" y1="60" x2="80" y2="60" stroke="#333" stroke-width="2"/>
+                        <line x1="120" y1="60" x2="160" y2="60" stroke="#333" stroke-width="2"/>
+                        <line x1="200" y1="60" x2="230" y2="60" stroke="#333" stroke-width="2"/>
+                        <rect x="10" y="40" width="20" height="40" fill="#ddd" stroke="#333"/>
+                        <text x="5" y="100" font-size="10">Source</text>
+                        <polygon id="diode-shape" points="80,45 80,75 110,60" fill="#95a5a6" stroke="#2c3e50" stroke-width="2"/> 
+                        <line id="diode-bar" x1="110" y1="45" x2="110" y2="75" stroke="#95a5a6" stroke-width="3"/>
+                        <text x="85" y="35" font-size="10" fill="#3498db">Diode</text>
+                        <rect x="160" y="50" width="40" height="20" fill="none" stroke="#333" stroke-width="2"/>
+                        <text x="160" y="40" font-size="10">Load</text>
+                    </svg>
+                </div>
+            </div>
+
+            <div id="controls-wrapper" class="disabled-ui">
+                <div class="panel-card">
+                    <div class="panel-header">Experimental Controls</div>
+                    
+                    <div class="control-group" style="background:#e8f4fd; padding:10px; border-radius:4px; border:1px solid #b6d4fe;">
+                        <label style="color:#004085; font-weight:bold;">Set Voltage Range</label>
+                        <div style="display:flex; gap:10px;">
+                            <div><label>Min (V)</label><input type="number" id="v-min" value="-5"></div>
+                            <div><label>Max (V)</label><input type="number" id="v-max" value="5"></div>
+                        </div>
+                        <button onclick="setVoltageRange()" style="width:100%; margin-top:5px; padding:5px; background:#004085; color:white; border:none; border-radius:3px; cursor:pointer;">Update Scale & Reference</button>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="show-theory" onchange="toggleTheory()">
+                            <span>Show Ideal Curves</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Component Type</label>
+                        <select id="material" onchange="resetExperiment()">
+                            <option value="Si">Silicon (Si)</option>
+                            <option value="Ge">Germanium (Ge)</option>
+                            <option value="RedLED">Red LED (1.8V)</option>
+                            <option value="BlueLED">Blue LED (3.3V)</option>
+                            <option value="Zener">Zener Diode</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>DC Voltage (V<sub>in</sub>): <span id="v-disp" style="color:var(--accent)">0.00 V</span></label>
+                        <input type="range" id="voltage-slider" min="-5" max="5" step="0.01" value="0" oninput="updateSlider(this.value)">
+                        <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                            <button onclick="fineTune(-0.01)" style="font-size:0.8rem; padding:4px 8px;">-0.01V</button>
+                            <button onclick="fineTune(0.01)" style="font-size:0.8rem; padding:4px 8px;">+0.01V</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-action btn-measure" onclick="takeReading()">Add Reading & Plot Point</button>
+                    <button class="btn-action btn-download" onclick="downloadCSV()">Download CSV</button>
+                    <button class="btn-action btn-reset" onclick="resetExperiment()">Reset</button>
+                    
+                    <div class="control-group" style="margin-top:10px;">
+                        <label>Temperature: <span id="temp-disp" style="color:var(--danger)">27 °C</span></label>
+                        <input type="range" id="temp-slider" min="0" max="100" value="27" oninput="document.getElementById('temp-disp').innerText = this.value + ' °C'">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="readings-bar">
+                <div class="reading-box"> <span class="reading-lbl">Voltage (V)</span> <span class="reading-val" id="disp-v">--</span> </div>
+                <div class="reading-box"> <span class="reading-lbl">Current (mA)</span> <span class="reading-val" id="disp-i">--</span> </div>
+                <div class="reading-box"> <span class="reading-lbl">Power (mW)</span> <span class="reading-val" id="disp-p">--</span> </div>
+                <div class="reading-box"> 
+                    <span class="reading-lbl">Status</span>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 5px;">
+                        <div id="status-light" style="width: 12px; height: 12px; border-radius: 50%; background-color: #555; box-shadow: none; transition: 0.3s;"></div>
+                        <span class="reading-val" id="disp-stat" style="font-size:1rem; margin:0; color:#555;">NO POWER</span> 
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card" style="flex:1; display: flex; flex-direction: column; min-height: 250px;">
+                <div class="panel-header" style="color: #3498db; display:flex; align-items:center; justify-content:space-between;">
+                    <span>V-I Analysis (High Precision)</span>
+                    <span id="sat-info" class="analysis-tag" style="display:none;"></span>
+                </div>
+                <div style="position: relative; flex: 1; height: 100%; width: 100%;">
+                    <canvas id="currentChart"></canvas>
+                </div>
+                <div style="display:flex; justify-content:center; gap:15px; margin-top:5px; font-size:0.75rem; color:#666;">
+                    <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:rgba(46, 204, 113, 0.1); border:1px solid green;"></span> Forward</div>
+                    <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:rgba(189, 195, 199, 0.2); border:1px solid grey;"></span> Reverse</div>
+                    <div style="display:flex; align-items:center; gap:5px;"><span style="width:10px; height:10px; background:rgba(231, 76, 60, 0.1); border:1px solid red;"></span> Breakdown</div>
+                </div>
+            </div>
+
+            <div class="panel-card" style="flex:1; display: flex; flex-direction: column; min-height: 250px;">
+                <div class="panel-header" style="color: #e74c3c;">Power Dissipation</div>
+                <div style="position: relative; flex: 1; height: 100%; width: 100%;">
+                    <canvas id="powerChart"></canvas>
+                </div>
+            </div>
+
+            <div class="tables-row">
+                <div class="panel-card">
+                    <div class="panel-header" style="display:flex; justify-content:space-between;">
+                        <span>Experimental Table</span> <span id="reading-count" style="font-size:0.8rem; color:#888;">0 Pts</span>
+                    </div>
+                    <div class="table-container">
+                        <table id="obs-table">
+                            <thead> <tr> <th>#</th> <th>V (V)</th> <th>I (mA)</th> </tr> </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel-card">
+                    <div class="panel-header" style="color: #95a5a6; border-bottom-color: #95a5a6;">
+                        Theoretical Reference
+                    </div>
+                    <div class="table-container">
+                        <table id="theory-table" style="color: #555;">
+                            <thead> <tr> <th>V (V)</th> <th>I (mA)</th> <th>State</th> </tr> </thead>
+                            <tbody><tr><td colspan="3" style="text-align:center;">Update Range to Fill</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const API = '/api'; 
+    let currentChart = null; 
+    let powerChart = null; 
+    let powerOn = false; 
+    let recordedData = []; 
+    let currentBreakdown = -50;
+
+    function initCharts() {
+        const ctx1 = document.getElementById('currentChart').getContext('2d');
+        const ctx2 = document.getElementById('powerChart').getContext('2d');
+        const minV = parseFloat(document.getElementById('v-min').value);
+        const maxV = parseFloat(document.getElementById('v-max').value);
+
+        currentChart = new Chart(ctx1, {
+            type: 'line',
+            data: { labels: [], datasets: [
+                { label: 'Measured', data: [], borderColor: '#3498db', backgroundColor: 'rgba(52, 152, 219, 0.2)', borderWidth: 3, pointRadius: 5, fill: false, tension: 0.1 },
+                { label: 'Ideal', data: [], borderColor: '#95a5a6', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, hidden: true }
+            ] },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                scales: { x: { type: 'linear', min: minV, max: maxV, title: {display:true, text:'Voltage (V)'} }, y: { title: {display:true, text:'Current (mA)'} } },
+                plugins: {
+                    annotation: {
+                        annotations: {
+                            forwardZone: { type: 'box', xMin: 0, xMax: maxV, backgroundColor: 'rgba(46, 204, 113, 0.1)', borderWidth: 0 },
+                            reverseZone: { type: 'box', xMin: currentBreakdown, xMax: 0, backgroundColor: 'rgba(189, 195, 199, 0.2)', borderWidth: 0 },
+                            breakdownZone: { type: 'box', xMin: minV, xMax: currentBreakdown, backgroundColor: 'rgba(231, 76, 60, 0.1)', borderWidth: 0 }
+                        }
+                    }
+                }
+            }
+        });
+
+        powerChart = new Chart(ctx2, {
+            type: 'line',
+            data: { labels: [], datasets: [
+                { label: 'Measured Power', data: [], borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.1)', borderWidth: 2, pointRadius: 4, fill: true, tension: 0.2 },
+                { label: 'Ideal Power', data: [], borderColor: '#95a5a6', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, hidden: true }
+            ] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'linear', min: minV, max: maxV, title: {display:true, text:'Voltage (V)'} }, y: { title: {display:true, text:'Power (mW)'} } } }
+        });
+        updateBreakdown();
+    }
+
+    window.onload = initCharts;
+
+    async function updateBreakdown() {
+        const mat = document.getElementById('material').value;
+        const res = await fetch(`${API}/sweep`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material: mat, start: -1, end: 1, temp: 27 }) });
+        const data = await res.json();
+        currentBreakdown = data.breakdown;
+        updateChartZones();
+        const satLabel = document.getElementById('sat-info'); satLabel.innerText = `Saturation Current (Is): ${data.saturation.toExponential(2)} A`; satLabel.style.display = "inline";
+    }
+
+    function updateChartZones() {
+        if(!currentChart) return;
+        const minV = parseFloat(document.getElementById('v-min').value);
+        const maxV = parseFloat(document.getElementById('v-max').value);
+        currentChart.options.plugins.annotation.annotations.forwardZone.xMax = maxV;
+        currentChart.options.plugins.annotation.annotations.reverseZone.xMin = currentBreakdown;
+        currentChart.options.plugins.annotation.annotations.breakdownZone.xMax = currentBreakdown;
+        currentChart.options.plugins.annotation.annotations.breakdownZone.xMin = minV;
+        currentChart.update();
+    }
+
+    async function populateTheoryTable() {
+        const mat = document.getElementById('material').value;
+        const t = parseFloat(document.getElementById('temp-slider').value);
+        const minV = parseFloat(document.getElementById('v-min').value);
+        const maxV = parseFloat(document.getElementById('v-max').value);
+        const res = await fetch(`${API}/sweep`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ material: mat, start: minV, end: maxV, temp: t }) });
+        const data = await res.json();
+        
+        currentChart.data.datasets[1].data = data.data.map(p => ({x: p.v, y: p.i * 1000}));
+        powerChart.data.datasets[1].data = data.data.map(p => ({x: p.v, y: p.p * 1000}));
+
+        const show = document.getElementById('show-theory').checked;
+        currentChart.data.datasets[1].hidden = !show;
+        powerChart.data.datasets[1].hidden = !show;
+        currentChart.update(); powerChart.update();
+
+        const tableBody = document.querySelector('#theory-table tbody'); tableBody.innerHTML = ''; 
+        const step = Math.ceil(data.data.length / 15);
+        data.data.forEach((p, index) => {
+            if (index % step === 0 || index === data.data.length - 1) {
+                let state = "Rev"; if(p.v > 0) state = "Fwd"; if(p.v < currentBreakdown) state = "Brk";
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `<td>${p.v.toFixed(2)}</td><td>${(p.i * 1000).toExponential(2)}</td><td style="font-size:0.75rem;">${state}</td>`;
+            }
+        });
+    }
+
+    function toggleTheory() {
+        if(!powerOn) return;
+        const show = document.getElementById('show-theory').checked;
+        currentChart.data.datasets[1].hidden = !show; powerChart.data.datasets[1].hidden = !show;
+        currentChart.update(); powerChart.update();
+        if(show) populateTheoryTable(); 
+    }
+
+    function setVoltageRange() {
+        const minV = parseFloat(document.getElementById('v-min').value);
+        const maxV = parseFloat(document.getElementById('v-max').value);
+        const slider = document.getElementById('voltage-slider');
+        slider.min = minV; slider.max = maxV; slider.value = 0;
+        updateSlider(0);
+        if(currentChart) { currentChart.options.scales.x.min = minV; currentChart.options.scales.x.max = maxV; }
+        if(powerChart) { powerChart.options.scales.x.min = minV; powerChart.options.scales.x.max = maxV; powerChart.update(); }
+        updateChartZones(); resetExperiment(); populateTheoryTable(); alert(`Range set: ${minV}V to ${maxV}V.`);
+    }
+
+    function togglePower() {
+        powerOn = document.getElementById('power-switch').checked;
+        const controls = document.getElementById('controls-wrapper');
+        const statusText = document.getElementById('power-status');
+        const statusLight = document.getElementById('status-light');
+        const dispStat = document.getElementById('disp-stat');
+        const diodeShape = document.getElementById('diode-shape');
+        const diodeBar = document.getElementById('diode-bar');
+        if (powerOn) {
+            controls.classList.remove('disabled-ui'); statusText.innerHTML = "Status: <b style='color:green'>ON</b>"; dispStat.innerText = "STANDBY"; dispStat.style.color = "white"; statusLight.style.backgroundColor = "orange"; statusLight.style.boxShadow = "0 0 5px orange"; diodeShape.setAttribute('fill', '#3498db'); diodeBar.setAttribute('stroke', '#3498db'); document.getElementById('disp-v').innerText = "0.00"; document.getElementById('disp-i').innerText = "0.00"; document.getElementById('disp-p').innerText = "0.00"; updateBreakdown();
+        } else {
+            controls.classList.add('disabled-ui'); statusText.innerHTML = "Status: <b>OFF</b>"; document.getElementById('disp-v').innerText = "--"; document.getElementById('disp-i').innerText = "--"; document.getElementById('disp-p').innerText = "--"; dispStat.innerText = "NO POWER"; dispStat.style.color = "#555"; statusLight.style.backgroundColor = "#555"; statusLight.style.boxShadow = "none"; diodeShape.setAttribute('fill', '#95a5a6'); diodeBar.setAttribute('stroke', '#95a5a6'); diodeShape.style.filter = "none"; resetExperiment();
+        }
+    }
+
+    function updateSlider(val) { if(!powerOn) return; document.getElementById('v-disp').innerText = parseFloat(val).toFixed(2) + " V"; }
+    
+    // --- UPDATED FINE TUNE LOGIC FOR 0.01V PRECISION ---
+    function fineTune(amount) { 
+        if(!powerOn) return; 
+        const slider = document.getElementById('voltage-slider'); 
+        let val = parseFloat(slider.value);
+        let newVal = val + amount;
+        
+        // Clamp logic
+        if(newVal > parseFloat(slider.max)) newVal = parseFloat(slider.max);
+        if(newVal < parseFloat(slider.min)) newVal = parseFloat(slider.min);
+        
+        // Avoid float drift
+        slider.value = newVal.toFixed(2); 
+        updateSlider(slider.value); 
+    }
+    
+    function resetExperiment() {
+        document.getElementById('reading-count').innerText = "0 Pts"; document.querySelector('#obs-table tbody').innerHTML = ''; document.getElementById('voltage-slider').value = 0;
+        if(powerOn) { updateSlider(0); document.getElementById('disp-v').innerText = "0.00"; document.getElementById('disp-i').innerText = "0.00"; document.getElementById('disp-p').innerText = "0.00"; }
+        recordedData = [];
+        if (currentChart) { currentChart.data.datasets[0].data = []; currentChart.data.datasets[1].hidden = true; document.getElementById('show-theory').checked = false; currentChart.update(); }
+        if (powerChart) { powerChart.data.labels = []; powerChart.data.datasets[0].data = []; powerChart.data.datasets[1].hidden = true; powerChart.update(); }
+    }
+    function downloadCSV() { let csv = "data:text/csv;charset=utf-8,Reading,Voltage,Current\n"; const rows = document.querySelectorAll("#obs-table tbody tr"); if (rows.length === 0) { alert("No readings!"); return; } rows.forEach(row => { let rowData = []; row.querySelectorAll("td").forEach(col => rowData.push(col.innerText)); csv += rowData.join(",") + "\n"; }); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "lab_data.csv"; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+    function formatNumber(num) { if (Math.abs(num) < 0.001 && Math.abs(num) > 0) return num.toExponential(2); return num.toFixed(3); }
+    async function takeReading() {
+        if(!powerOn) return;
+        const v = parseFloat(document.getElementById('voltage-slider').value);
+        let mat = document.getElementById('material').value;
+        const t = parseFloat(document.getElementById('temp-slider').value);
+        const res = await fetch(`${API}/measure`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({voltage:v, material:mat, temp:t})});
+        const data = await res.json();
+        const i_mA = (data.current * 1000); const p_mW = (data.power * 1000); const satCurrent = data.saturation; 
+        document.getElementById('disp-v').innerText = v.toFixed(2); document.getElementById('disp-i').innerText = formatNumber(i_mA); document.getElementById('disp-p').innerText = formatNumber(p_mW);
+        const satLabel = document.getElementById('sat-info'); satLabel.innerText = `Saturation Current (Is): ${satCurrent.toExponential(2)} A`; satLabel.style.display = "inline";
+        const statBox = document.getElementById('disp-stat'); const light = document.getElementById('status-light'); statBox.innerText = data.status;
+        if (data.status === "OPTIMAL") { statBox.style.color = "var(--success)"; light.style.backgroundColor = "#27ae60"; light.style.boxShadow = "0 0 8px #27ae60"; } else { statBox.style.color = "var(--danger)"; light.style.backgroundColor = "#e74c3c"; light.style.boxShadow = "0 0 8px #e74c3c"; }
+        const tableBody = document.querySelector('#obs-table tbody'); const count = tableBody.rows.length + 1; const newRow = tableBody.insertRow();
+        newRow.innerHTML = `<td>${count}</td><td>${v.toFixed(2)}</td><td>${formatNumber(i_mA)}</td>`;
+        document.getElementById('reading-count').innerText = `${count} Pts`; document.querySelector('.table-container').scrollTop = document.querySelector('.table-container').scrollHeight;
+        recordedData.push({ x: v, y: i_mA, p: p_mW }); recordedData.sort((a, b) => a.x - b.x);
+        currentChart.data.datasets[0].data = recordedData.map(d => ({x: d.x, y: d.y})); currentChart.update();
+        powerChart.data.labels = recordedData.map(d => d.x); powerChart.data.datasets[0].data = recordedData.map(d => d.p); powerChart.update();
+        if(document.getElementById('show-theory').checked) populateTheoryTable();
+    }
+</script>
+</body>
+</html>
